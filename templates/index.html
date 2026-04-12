@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Radar + Semantic Company Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container hero-section">
+            <h1 class="hero-title">Mini Radar <span class="highlight">+</span> Semantic Company Search</h1>
+            <p class="hero-subtitle">
+                Discover, score, and explore companies with AI-powered semantic search and radar analytics. Instantly surface the most relevant B2B innovators and partners, explained.
+            </p>
+        </div>
+    </header>
+
+    <main>
+        <section class="search-section">
+            <form method="POST" action="{{ url_for('search') }}" class="search-form">
+                <div class="search-bar-wrapper">
+                    <input
+                        type="text"
+                        name="query"
+                        class="search-input"
+                        placeholder="Describe your needs or ideal company…"
+                        value="{{ query if query else '' }}"
+                        autofocus
+                        required
+                        autocomplete="off"
+                        aria-label="Search"
+                    >
+                    <button type="submit" class="search-btn">Search</button>
+                </div>
+            </form>
+        </section>
+
+        {% if error %}
+        <section class="results-section">
+            <div class="container results-container">
+                <p class="search-error" role="alert">{{ error }}</p>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if results is not none and results|length == 0 and query and not error %}
+        <section class="results-section">
+            <div class="container results-container">
+                <p class="search-empty">No se encontraron empresas que coincidan con los criterios.</p>
+            </div>
+        </section>
+        {% endif %}
+
+        {% if results %}
+        <section class="results-section">
+            <div class="container results-container">
+                <h2 class="results-heading">Top Matches</h2>
+                <div class="results-grid">
+                    {% for res in results %}
+                    <article class="result-card">
+                        <header class="result-card-header">
+                            <div class="result-title-row">
+                                <h3 class="result-name">{{ res.name }}</h3>
+                                {% if res.website %}
+                                    <a href="{{ res.website }}" class="result-website" target="_blank" rel="noopener">
+                                        <span class="website-link-text">Visit</span>
+                                    </a>
+                                {% endif %}
+                            </div>
+                            <div class="result-meta-row">
+                                <span class="result-sector">{{ res.sector or 'Sector desconocido' }}</span>
+                                <span class="result-score radar-label">{{ res.radar_label }} <span class="radar-score">({{ res.radar_score }})</span></span>
+                            </div>
+                        </header>
+
+                        <section class="result-body">
+                            <div class="result-description">
+                                {{ res.description }}
+                            </div>
+                        </section>
+
+                        <footer class="result-card-footer">
+                            <ul class="result-details-list">
+                                <li><strong>Similarity:</strong> {{ '%.3f'|format(res.similarity) }}</li>
+                                <li><strong>Score Reason:</strong> {{ res.score_reason }}</li>
+                            </ul>
+                        </footer>
+                    </article>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+        {% endif %}
+    </main>
+</body>
+</html>

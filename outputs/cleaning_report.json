@@ -1,0 +1,17 @@
+{
+  "total_rows_input": 912,
+  "total_rows_output": 902,
+  "total_invalid_records": 0,
+  "total_partial_records": 0,
+  "total_valid_records": 902,
+  "total_exact_duplicates_removed": 10,
+  "total_probable_duplicates_flagged": 0,
+  "total_invalid_websites": 0,
+  "total_missing_descriptions": 0,
+  "total_multi_sector_records": 458,
+  "total_low_information_records": 0,
+  "total_rows_sent_to_manual_review": 0,
+  "dedup_by_id": 0,
+  "dedup_by_name": 4,
+  "dedup_by_domain": 6
+}

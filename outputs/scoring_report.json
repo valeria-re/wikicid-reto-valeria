@@ -1,0 +1,15 @@
+{
+  "total_rows_input": 902,
+  "total_rows_scored": 902,
+  "total_rows_skipped": 0,
+  "total_candidate": 141,
+  "total_review": 635,
+  "total_discard": 126,
+  "avg_radar_score": 62.4218,
+  "avg_industry_alignment_score": 22.4035,
+  "avg_impact_alignment_score": 11.3925,
+  "avg_data_maturity_score": 28.6258,
+  "embedding_provider": "local",
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "execution_timestamp": "2026-04-11T20:21:24.746204+00:00"
+}

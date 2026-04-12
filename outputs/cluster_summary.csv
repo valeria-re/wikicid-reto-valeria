@@ -1,0 +1,29 @@
+cluster_id,cluster_label,total_companies,representative_theme_tags,average_radar_score
+0,Edtech,48,Edtech; Healthtech; Customer Engagement; Telecom Enablement; CX Analytics; Identity & Access; RPA / Process Automation; E-commerce Enablement,49.958333333333336
+1,Customer Engagement,20,Customer Engagement; Telecom Enablement; Healthtech; Edtech; Identity & Access; Fintech; IoT / Edge; RPA / Process Automation,51.15
+2,E-commerce Enablement,43,E-commerce Enablement; Edtech; Healthtech; Fintech; Customer Engagement; Telecom Enablement; RPA / Process Automation; Identity & Access,67.13953488372093
+3,Customer Engagement,25,Customer Engagement; Edtech; Data Infrastructure; Identity & Access; Telecom Enablement; CX Analytics; Contact Center AI; E-commerce Enablement,53.68
+4,Healthtech,12,Healthtech; Fintech; Edtech; Identity & Access,55.666666666666664
+5,Telecom Enablement,30,Telecom Enablement; Fintech; IoT / Edge; RPA / Process Automation; Healthtech; Identity & Access; E-commerce Enablement,51.63333333333333
+6,Healthtech,27,Healthtech; Automatización hospitalaria; IoT / Edge; Customer Engagement; Fintech; Edtech,67.29629629629629
+7,CX Analytics,35,CX Analytics; Edtech; Customer Engagement; RPA / Process Automation; Fintech; Telecom Enablement; E-commerce Enablement; Identity & Access,75.12857142857143
+8,Contact Center AI,43,Contact Center AI; RPA / Process Automation; Healthtech; Edtech; Customer Engagement; Telecom Enablement; IoT / Edge; E-commerce Enablement,72.86046511627907
+9,Edtech,39,Edtech; IoT / Edge; RPA / Process Automation; Healthtech; Telecom Enablement; Fintech; E-commerce Enablement; Security / Zero Trust,70.15384615384616
+10,Identity & Access,19,Identity & Access; Security / Zero Trust; Telecom Enablement; Edtech; Fintech; IoT / Edge; Healthtech; Customer Engagement,66.71052631578948
+11,Fintech,61,Fintech; Telecom Enablement; Identity & Access; E-commerce Enablement; Edtech; RPA / Process Automation; Customer Engagement; IoT / Edge,63.77049180327869
+12,Healthtech,24,Healthtech; IoT / Edge; E-commerce Enablement; Fintech; Automatización hospitalaria; Contact Center AI; Edtech,57.375
+13,Edtech,29,Edtech; Healthtech; Customer Engagement; Contact Center AI; E-commerce Enablement; Telecom Enablement; Identity & Access; RPA / Process Automation,60.41379310344828
+14,CX Analytics,24,CX Analytics; Edtech; Identity & Access; IoT / Edge; Fintech; Security / Zero Trust; Data Infrastructure; E-commerce Enablement,53.0
+15,Edtech,49,Edtech; RPA / Process Automation; Healthtech; Fintech; Customer Engagement; CX Analytics; Data Infrastructure; Telecom Enablement,57.09183673469388
+16,Telecom Enablement,43,Telecom Enablement; Edtech; RPA / Process Automation; Fintech; Healthtech; IoT / Edge; Customer Engagement; Security / Zero Trust,79.62790697674419
+17,E-commerce Enablement,22,E-commerce Enablement; Fintech; Edtech; Telecom Enablement; Healthtech,44.13636363636363
+18,E-commerce Enablement,36,E-commerce Enablement; Fintech; RPA / Process Automation; CX Analytics; Edtech; Customer Engagement,42.05555555555556
+19,CX Analytics,65,CX Analytics; Customer Engagement; Edtech; Telecom Enablement; RPA / Process Automation; Fintech; Identity & Access; Healthtech,71.83076923076923
+20,Telecom Enablement,35,Telecom Enablement; IoT / Edge; Edtech; Identity & Access; Healthtech; Data Infrastructure; Customer Engagement; Fintech,62.857142857142854
+21,Edtech,19,Edtech; RPA / Process Automation; Healthtech; Security / Zero Trust; Customer Engagement,58.21052631578947
+22,Healthtech,48,Healthtech; Edtech; RPA / Process Automation; Customer Engagement; Telecom Enablement; Security / Zero Trust; IoT / Edge; Fintech,73.72916666666667
+23,Edtech,33,Edtech; IoT / Edge; Healthtech; Automatización hospitalaria; RPA / Process Automation; Telecom Enablement; Security / Zero Trust; Identity & Access,70.48484848484848
+24,RPA / Process Automation,27,RPA / Process Automation; E-commerce Enablement; Telecom Enablement; Healthtech; IoT / Edge; Fintech; Identity & Access; Data Infrastructure,66.18518518518519
+25,Data Infrastructure,22,Data Infrastructure; Edtech; Fintech; Identity & Access; Contact Center AI; E-commerce Enablement,43.18181818181818
+26,Telecom Enablement,17,Telecom Enablement,54.411764705882355
+27,General Technology,7,General Technology,50.714285714285715

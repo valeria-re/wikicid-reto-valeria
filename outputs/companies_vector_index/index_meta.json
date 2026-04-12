@@ -1,0 +1,7 @@
+{
+  "embedding_provider": "local",
+  "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "embedding_dimension": 384,
+  "n_vectors": 902,
+  "order_note": "Orden de filas = orden en company_id_order.json"
+}
