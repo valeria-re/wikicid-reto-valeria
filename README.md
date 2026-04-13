@@ -19,9 +19,9 @@ It allows users to search companies using plain language queries such as:
 
 And returns ranked companies based on:
 
-1. Semantic relevance  
-2. Strategic fit  
-3. Radar score quality  
+1. Semantic relevance
+2. Strategic fit
+3. Radar score quality
 
 ---
 
@@ -29,7 +29,7 @@ And returns ranked companies based on:
 
 Current deployed version (Render):
 
-https://wikicid-reto-valeria.onrender.com
+[https://wikicid-reto-valeria.onrender.com](https://wikicid-reto-valeria.onrender.com)
 
 ⸻
 
@@ -43,14 +43,13 @@ Therefore:
 
 Anyone who wants to run or deploy this project must create their own API key from:
 
-https://dashboard.cohere.com/
+[https://dashboard.cohere.com/](https://dashboard.cohere.com/)
 
 And configure it in their environment variables.
 
 Example:
 
 COHERE_API_KEY=your_api_key_here
-
 
 ⸻
 
@@ -87,7 +86,7 @@ Measures whether the company operates in priority sectors such as:
 
 ⸻
 
-2. Business Impact Alignment (35 pts)
+1. Business Impact Alignment (35 pts)
 
 Detects signals related to:
 	•	Revenue growth
@@ -98,7 +97,7 @@ Detects signals related to:
 
 ⸻
 
-3. Data Maturity (30 pts)
+1. Data Maturity (30 pts)
 
 Measures data quality using:
 	•	Website validity
@@ -111,12 +110,13 @@ Measures data quality using:
 Priority Labels
 
 Score	Label
-> 80	CANDIDATE
-40–80	REVIEW
-< 40	DISCARD
 
+> 80	CANDIDATE
+> 40–80	REVIEW
+> < 40	DISCARD
 
 ⸻
+
 ```text
 Project Architecture
 
@@ -146,6 +146,7 @@ mini-radar/
     └── styles.css
 
 ```
+
 ⸻
 
 Pipeline Flow
@@ -160,7 +161,6 @@ Output:
 
 outputs/companies_clean.csv
 
-
 ⸻
 
 Step 2 — Embeddings Generation (Cohere API)
@@ -172,7 +172,6 @@ python src/embeddings.py
 Output:
 
 outputs/companies_embeddings.parquet
-
 
 ⸻
 
@@ -186,20 +185,17 @@ Output:
 
 outputs/companies_scored.csv
 
-
 ⸻
 
 Step 4 — Semantic Search
 
 python src/search.py --query "healthcare platforms"
 
-
 ⸻
 
 Step 5 — Flask App
 
 python app.py
-
 
 ⸻
 
@@ -210,16 +206,14 @@ Create a .env file or configure hosting variables:
 COHERE_API_KEY=your_api_key_here
 FLASK_ENV=production
 
-
 ⸻
 
 Installation
 
 Clone Repo
 
-git clone <your-repo-url>
+git clone 
 cd mini-radar
-
 
 ⸻
 
@@ -232,13 +226,11 @@ Windows:
 
 .venv\Scripts\activate
 
-
 ⸻
 
 Install Dependencies
 
 pip install -r requirements.txt
-
 
 ⸻
 
@@ -254,7 +246,6 @@ Rank	Company	Similarity	Radar	Label
 1	Clearwave	0.764	92	CANDIDATE
 2	MedFlow	0.742	84	CANDIDATE
 3	CareCX	0.721	76	REVIEW
-
 
 ⸻
 
@@ -300,37 +291,11 @@ Hosting
 Currently deployed on:
 	•	Render
 
-Can also be deployed to:
-	•	Railway
-	•	PythonAnywhere
-	•	VPS
+Can also be deployed to:  
+	•	Railway  
+	•	PythonAnywhere  
+	•	VPS  
 	•	Docker
-
-⸻
-
-Interview Value
-
-This project demonstrates practical experience in:
-
-Data Engineering
-	•	ETL pipelines
-	•	dataset normalization
-	•	quality control
-
-Machine Learning
-	•	embeddings
-	•	semantic search
-	•	ranking systems
-
-Product Thinking
-	•	lead prioritization
-	•	explainable scoring
-	•	search UX
-
-Software Engineering
-	•	Flask deployment
-	•	API integration
-	•	modular architecture
 
 ⸻
 
