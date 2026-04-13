@@ -425,19 +425,6 @@ Se utilizó para estilizar la aplicación con apariencia más comercial y cercan
 **Prompt:**
 
 Improve this CSS so the page looks more premium and visually impressive.
-Enhance:
-* hero section presence
-* typography contrast
-* spacing and layout rhythm
-* result cards depth
-* glassmorphism / blur touches
-* subtle gradients
-* hover interactions
-* badge polish
-* section transitions
-Do not make it flashy or messy. Keep it elegant, modern, and product-grade.
-
-
 
 **Uso y justificación:**  
 Se utilizó para iterar sobre el diseño visual final, agregando profundidad, jerarquía visual y acabados más profesionales.
@@ -448,3 +435,6 @@ Se utilizó para iterar sobre el diseño visual final, agregando profundidad, je
 
 Todo código generado mediante IA fue revisado, corregido, probado e integrado manualmente. La lógica final del producto, conexión entre módulos, validación de resultados y decisiones técnicas fueron responsabilidad directa de la desarrolladora.
 
+# Nota final
+
+La inteligencia artificial fue utilizada como herramienta de apoyo para acelerar el desarrollo y mejorar productividad, no como sustitución del criterio técnico ni del trabajo humano.
