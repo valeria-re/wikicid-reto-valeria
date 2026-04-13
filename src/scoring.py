@@ -108,7 +108,7 @@ def load_embeddings(path: Path) -> pd.DataFrame:
             f"ERROR: No existe el archivo de embeddings requerido: {path}. "
             "Ejecute primero el pipeline de embeddings."
         )
-    return pd.read_parquet(path)
+    return pd.read_csv(path)
 
 
 def validate_input_schema(df_clean: pd.DataFrame, df_emb: pd.DataFrame) -> None:

@@ -361,7 +361,7 @@ def load_existing_embedding_cache(
     if not parquet_path.is_file():
         return {}
     try:
-        prev = pd.read_parquet(parquet_path)
+        prev = pd.read_csv(parquet_path)
     except Exception as e:
         logger.warning("No se pudo leer caché incremental %s: %s", parquet_path, e)
         return {}

@@ -122,7 +122,7 @@ def _resolve_scored_path() -> Path:
 
 def load_scored_dataset(path: Path) -> pd.DataFrame:
     if path.suffix.lower() == ".parquet":
-        return pd.read_parquet(path)
+        return pd.read_csv(path)
     return pd.read_csv(path, dtype=str, keep_default_na=False)
 
 
@@ -131,7 +131,7 @@ def load_embeddings_parquet(path: Path = _EMBEDDINGS_PARQUET) -> pd.DataFrame:
         raise SearchAbort(
             f"Falta el archivo de embeddings: `{path}` (ruta absoluta esperada o bajo outputs/)."
         )
-    return pd.read_parquet(path)
+    return pd.read_csv(path)
 
 
 def load_embeddings_or_from_scored(scored: pd.DataFrame) -> pd.DataFrame:
