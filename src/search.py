@@ -105,34 +105,32 @@ def validate_search_params(params: SearchParams) -> None:
 
 
 def get_query_embedding(query_text: str) -> np.ndarray:
-    import embeddings as emb
+    import os
+    import cohere
+    import numpy as np
 
-    cfg = emb.EmbeddingConfig(
-        provider="local",
-        model="sentence-transformers/all-MiniLM-L6-v2",
-        batch_size=32,
-        max_text_length=8000,
-        min_text_length=1,
-        max_retries=3,
-        input_path=_DEFAULT_OUTPUT_DIR / "cleaned_companies.csv",
-        output_dir=_DEFAULT_OUTPUT_DIR,
-        openai_api_key=os.environ.get("OPENAI_API_KEY"),
-        incremental=False,
-    )
+    api_key = os.environ.get("COHERE_API_KEY")
+    if not api_key:
+        raise SearchAbort("Falta la variable de entorno COHERE_API_KEY.")
 
-    backend = emb.get_embedding_backend(cfg)
-    arr, err = emb.embed_single_with_retries(backend, query_text, cfg)
+    try:
+        client = cohere.ClientV2(api_key=api_key)
 
-    close = getattr(backend, "close", None)
-    if callable(close):
-        close()
+        response = client.embed(
+            model="embed-v4.0",
+            input_type="search_query",
+            texts=[query_text],
+            embedding_types=["float"],
+        )
 
-    if arr is None:
-        raise SearchAbort(f"No se pudo generar el embedding de la consulta: {err or 'error desconocido'}")
+        vec = np.asarray(response.embeddings.float[0], dtype=np.float64).reshape(-1)
+        if vec.size == 0:
+            raise SearchAbort("Cohere devolvió un embedding vacío para la consulta.")
 
-    vec = np.asarray(arr, dtype=np.float64).reshape(-1)
-    return vec
+        return vec
 
+    except Exception as e:
+        raise SearchAbort(f"No se pudo generar el embedding con Cohere: {e}")
 
 def cosine_similarity_matrix(company_matrix: np.ndarray, query_vec: np.ndarray) -> np.ndarray:
     x = np.asarray(company_matrix, dtype=np.float64)
