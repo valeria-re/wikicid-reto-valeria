@@ -29,10 +29,7 @@ And returns ranked companies based on:
 
 Current deployed version (Render):
 
-```text
 https://wikicid-reto-valeria.onrender.com
-
-Replace the URL above with your real deployed Render link.
 
 ⸻
 
