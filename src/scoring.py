@@ -20,12 +20,13 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import normalize
 
 # --- Paths (project root = parent of src/) ---
+# --- Paths (project root = parent of src/) ---
 BASE_DIR = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = BASE_DIR / "outputs"
-CLEAN_CSV = OUTPUT_DIR / "companies_clean.csv"
-EMB_PARQUET = OUTPUT_DIR / "companies_embeddings.parquet"
-OUT_CSV = OUTPUT_DIR / "companies_scored.csv"
-OUT_PARQUET = OUTPUT_DIR / "companies_scored.parquet"
+
+CLEAN_CSV = OUTPUT_DIR / "cleaned_companies.csv"
+EMB_NPY = OUTPUT_DIR / "company_embeddings.npy"
+OUT_CSV = OUTPUT_DIR / "scored_companies.csv"
 REPORT_JSON = OUTPUT_DIR / "scoring_report.json"
 CLUSTER_SUMMARY_CSV = OUTPUT_DIR / "cluster_summary.csv"
 
@@ -45,15 +46,7 @@ REQUIRED_CLEAN_COLS = (
     "low_information_flag",
 )
 
-REQUIRED_EMB_COLS = (
-    "company_id",
-    "embedding_vector",
-    "embedding_dim",
-    "embedding_provider",
-    "embedding_model",
-    "embedding_status",
-    "semantic_text_used",
-)
+
 
 VALID_RECORD_STATUS = frozenset({"valid_record", "partial_record"})
 
@@ -102,55 +95,39 @@ def load_clean_dataset(path: Path) -> pd.DataFrame:
     return pd.read_csv(path, dtype=str, keep_default_na=False)
 
 
-def load_embeddings(path: Path) -> pd.DataFrame:
+def load_embeddings(path: Path) -> np.ndarray:
     if not path.is_file():
         sys.exit(
             f"ERROR: No existe el archivo de embeddings requerido: {path}. "
             "Ejecute primero el pipeline de embeddings."
         )
-    return pd.read_csv(path)
+    try:
+        arr = np.load(path)
+    except Exception as e:
+        sys.exit(f"ERROR: No se pudieron cargar los embeddings desde {path}: {e}")
+
+    if arr.ndim != 2:
+        sys.exit(
+            f"ERROR: Se esperaban embeddings 2D con forma (n, d), "
+            f"pero se obtuvo shape={getattr(arr, 'shape', None)}"
+        )
+
+    return arr.astype(np.float32)
 
 
-def validate_input_schema(df_clean: pd.DataFrame, df_emb: pd.DataFrame) -> None:
+def validate_input_schema(df_clean: pd.DataFrame, emb_matrix: np.ndarray) -> None:
     missing_c = [c for c in REQUIRED_CLEAN_COLS if c not in df_clean.columns]
     if missing_c:
-        sys.exit(f"ERROR: Faltan columnas obligatorias en companies_clean.csv: {missing_c}")
-    missing_e = [c for c in REQUIRED_EMB_COLS if c not in df_emb.columns]
-    if missing_e:
-        sys.exit(f"ERROR: Faltan columnas obligatorias en companies_embeddings.parquet: {missing_e}")
+        sys.exit(f"ERROR: Faltan columnas obligatorias en cleaned_companies.csv: {missing_c}")
+
     if df_clean["company_id"].duplicated().any():
-        sys.exit("ERROR: company_id duplicado en companies_clean.csv; revise los datos.")
-    if df_emb["company_id"].duplicated().any():
-        sys.exit("ERROR: company_id duplicado en companies_embeddings.parquet; revise los datos.")
+        sys.exit("ERROR: company_id duplicado en cleaned_companies.csv; revise los datos.")
 
-
-def merge_datasets(df_clean: pd.DataFrame, df_emb: pd.DataFrame) -> pd.DataFrame:
-    emb_keep = list(REQUIRED_EMB_COLS)
-    sub = df_emb[emb_keep].copy()
-    merged = df_clean.merge(sub, on="company_id", how="inner", validate="one_to_one")
-    return merged
-
-
-def _to_embedding_matrix(vectors: Any) -> np.ndarray:
-    """Stack embedding_vector column into (n, dim) float32."""
-    rows: list[np.ndarray] = []
-    for v in vectors:
-        if v is None or (isinstance(v, float) and pd.isna(v)):
-            rows.append(np.array([], dtype=np.float32))
-            continue
-        arr = np.asarray(v, dtype=np.float32).ravel()
-        rows.append(arr)
-    lens = {x.shape[0] for x in rows if x.size}
-    if len(lens) > 1:
-        raise ValueError("embedding_vector: dimensiones inconsistentes entre filas")
-    if not lens:
-        return np.zeros((0, 0), dtype=np.float32)
-    dim = lens.pop()
-    out = np.zeros((len(rows), dim), dtype=np.float32)
-    for i, r in enumerate(rows):
-        if r.size == dim:
-            out[i] = r
-    return out
+    if emb_matrix.shape[0] != len(df_clean):
+        sys.exit(
+            "ERROR: El número de embeddings no coincide con el número de filas del dataset limpio. "
+            f"clean={len(df_clean)}, embeddings={emb_matrix.shape[0]}"
+        )
 
 
 def _pick_n_clusters(n_samples: int) -> int:
@@ -568,33 +545,32 @@ def build_score_explanation(
 
 
 def export_outputs(
-    df_for_parquet: pd.DataFrame,
+    df_csv_ready: pd.DataFrame,
     report: dict[str, Any],
     cluster_summary: pd.DataFrame,
-    paths: tuple[Path, Path, Path, Path],
+    paths: tuple[Path, Path, Path],
 ) -> None:
-    """Parquet conserva listas; CSV serializa listas como JSON."""
-    csv_p, pq_p, js_p, cl_p = paths
+    csv_p, js_p, cl_p = paths
     csv_p.parent.mkdir(parents=True, exist_ok=True)
-    df_csv = df_for_parquet.copy()
+
+    df_csv = df_csv_ready.copy()
     for col in ("theme_tags", "priority_industry_labels", "impact_labels"):
         if col in df_csv.columns:
             df_csv[col] = df_csv[col].apply(
                 lambda x: json.dumps(x, ensure_ascii=False) if isinstance(x, list) else x
             )
-    df_csv.to_csv(csv_p, index=False)
-    df_for_parquet.to_parquet(pq_p, index=False)
-    js_p.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    cluster_summary.to_csv(cl_p, index=False)
 
+    df_csv.to_csv(csv_p, index=False, encoding="utf-8")
+    js_p.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    cluster_summary.to_csv(cl_p, index=False, encoding="utf-8")
 
 def generate_report_payload(
     total_rows_input: int,
     total_rows_scored: int,
     total_rows_skipped: int,
     df_scored: pd.DataFrame,
-    embedding_provider: str,
-    embedding_model: str,
+    embedding_provider: embedding_provider,
+    embedding_model: embedding_model,
     ts: str,
 ) -> dict[str, Any]:
     return {
@@ -631,260 +607,9 @@ def _eligible_row(row: pd.Series) -> bool:
         return False
     if str(cid).strip() == "":
         return False
+
     rs = str(row.get("record_status", "")).strip()
     if rs not in VALID_RECORD_STATUS:
         return False
-    if str(row.get("embedding_status", "")).strip() != "embedded":
-        return False
-    ev = row.get("embedding_vector")
-    if ev is None:
-        return False
-    try:
-        a = np.asarray(ev, dtype=np.float32).ravel()
-        if a.size == 0:
-            return False
-    except (TypeError, ValueError):
-        return False
+
     return True
-
-
-def run_scoring() -> None:
-    ts = datetime.now(timezone.utc).isoformat()
-    df_clean = load_clean_dataset(CLEAN_CSV)
-    df_emb = load_embeddings(EMB_PARQUET)
-    validate_input_schema(df_clean, df_emb)
-
-    total_rows_input = len(df_clean)
-    merged = merge_datasets(df_clean, df_emb)
-
-    eligible_mask = merged.apply(_eligible_row, axis=1)
-    eligible_idx = merged.index[eligible_mask]
-    skipped = int((~eligible_mask).sum())
-
-    emb_provider = ""
-    emb_model = ""
-
-    # Initialize output columns on merged copy
-    out = merged.copy()
-    float_cols = (
-        "industry_alignment_score",
-        "impact_alignment_score",
-        "website_quality_score",
-        "description_quality_score",
-        "record_completeness_score",
-        "data_maturity_score",
-        "radar_score",
-    )
-    str_cols = (
-        "cluster_label",
-        "industry_alignment_evidence",
-        "industry_alignment_confidence",
-        "impact_alignment_evidence",
-        "impact_alignment_confidence",
-        "data_maturity_evidence",
-        "priority_label",
-        "score_reason_summary",
-        "top_strengths",
-        "top_weaknesses",
-    )
-    list_cols = ("theme_tags", "priority_industry_labels", "impact_labels")
-    bool_cols = (
-        "impact_sell_more_flag",
-        "impact_customer_experience_flag",
-        "impact_cost_process_flag",
-    )
-    for c in float_cols:
-        out[c] = np.nan
-    out["cluster_id"] = pd.Series(pd.NA, index=out.index, dtype="Int64")
-    for c in str_cols:
-        out[c] = pd.Series([pd.NA] * len(out), dtype=object)
-    for c in list_cols:
-        out[c] = pd.Series([None] * len(out), dtype=object)
-    for c in bool_cols:
-        out[c] = pd.Series(pd.NA, index=out.index, dtype="boolean")
-
-    n_eligible = int(eligible_mask.sum())
-    cluster_count = 0
-
-    if n_eligible == 0:
-        df_scored = out.iloc[0:0].copy()
-        if len(merged):
-            emb_provider = str(merged["embedding_provider"].iloc[0])
-            emb_model = str(merged["embedding_model"].iloc[0])
-    else:
-        sub = merged.loc[eligible_idx].copy()
-        emb_mat = _to_embedding_matrix(sub["embedding_vector"].tolist())
-        cluster_ids, cluster_count = generate_clustering(sub, emb_mat)
-        id_to_label = label_clusters(sub, cluster_ids)
-
-        for j, ix in enumerate(sub.index):
-            cid = int(cluster_ids[j])
-            clab = id_to_label.get(cid, "General Technology")
-            row = sub.loc[ix]
-            sem = str(row.get("semantic_text", "") or row.get("semantic_text_used", "") or "")
-            text_f = fold(f"{sem} {row.get('description_clean', '')} {row.get('sector_primary', '')}")
-            tags = build_theme_tags_for_row(text_f, clab)
-
-            pri = detect_priority_industries(
-                str(row.get("sector_primary", "")),
-                str(row.get("sector_list_clean", "")),
-                str(row.get("description_clean", "")),
-                sem,
-                tags,
-            )
-            ind_s, ind_ev, ind_cf = calc_industry_alignment_score(
-                pri,
-                str(row.get("sector_primary", "")),
-                str(row.get("sector_list_clean", "")),
-                str(row.get("description_clean", "")),
-                sem,
-            )
-
-            imp_lbls, f_sell, f_cx, f_ops = classify_business_impact(
-                str(row.get("description_clean", "")),
-                sem,
-                tags,
-                clab,
-            )
-            imp_s, imp_ev, imp_cf = calc_impact_alignment_score(
-                imp_lbls,
-                str(row.get("description_clean", "")),
-                sem,
-            )
-
-            wq = calc_website_quality_score(
-                str(row.get("website_clean", "")),
-                str(row.get("website_domain", "")),
-                row.get("invalid_website_flag"),
-            )
-            dq = calc_description_quality_score(
-                str(row.get("description_clean", "")),
-                row.get("missing_description_flag"),
-                row.get("low_information_flag"),
-            )
-            rq = calc_record_completeness_score(
-                str(row.get("sector_primary", "")),
-                str(row.get("website_clean", "")),
-                str(row.get("description_clean", "")),
-                str(row.get("semantic_text", "")),
-                row.get("missing_description_flag"),
-                row.get("invalid_website_flag"),
-                row.get("low_information_flag"),
-            )
-            dm, dm_ev = calc_data_maturity_score(wq, dq, rq)
-            radar = calc_radar_score_total(ind_s, imp_s, dm)
-            plab = assign_priority_label(radar)
-            summ, ts_s, ts_w = build_score_explanation(
-                radar,
-                ind_s,
-                imp_s,
-                dm,
-                ind_ev,
-                imp_ev,
-                dm_ev,
-                pri,
-                imp_lbls,
-            )
-
-            out.at[ix, "cluster_id"] = cid
-            out.at[ix, "cluster_label"] = clab
-            out.at[ix, "theme_tags"] = tags
-            out.at[ix, "priority_industry_labels"] = pri
-            out.at[ix, "industry_alignment_score"] = ind_s
-            out.at[ix, "industry_alignment_evidence"] = ind_ev
-            out.at[ix, "industry_alignment_confidence"] = ind_cf
-            out.at[ix, "impact_labels"] = imp_lbls
-            out.at[ix, "impact_sell_more_flag"] = f_sell
-            out.at[ix, "impact_customer_experience_flag"] = f_cx
-            out.at[ix, "impact_cost_process_flag"] = f_ops
-            out.at[ix, "impact_alignment_score"] = imp_s
-            out.at[ix, "impact_alignment_evidence"] = imp_ev
-            out.at[ix, "impact_alignment_confidence"] = imp_cf
-            out.at[ix, "website_quality_score"] = wq
-            out.at[ix, "description_quality_score"] = dq
-            out.at[ix, "record_completeness_score"] = rq
-            out.at[ix, "data_maturity_score"] = dm
-            out.at[ix, "data_maturity_evidence"] = dm_ev
-            out.at[ix, "radar_score"] = radar
-            out.at[ix, "priority_label"] = plab
-            out.at[ix, "score_reason_summary"] = summ
-            out.at[ix, "top_strengths"] = ts_s
-            out.at[ix, "top_weaknesses"] = ts_w
-
-        df_scored = out.loc[eligible_idx].copy()
-        emb_provider = str(df_scored["embedding_provider"].iloc[0])
-        emb_model = str(df_scored["embedding_model"].iloc[0])
-
-    report = generate_report_payload(
-        total_rows_input,
-        n_eligible,
-        skipped + (total_rows_input - len(merged)),
-        df_scored,
-        emb_provider,
-        emb_model,
-        ts,
-    )
-
-    # cluster_summary from scored rows only
-    if len(df_scored) and "cluster_id" in df_scored.columns:
-        def agg_tags(series: pd.Series) -> str:
-            all_tags: list[str] = []
-            for v in series:
-                if isinstance(v, list):
-                    all_tags.extend(v)
-            freq: dict[str, int] = {}
-            for t in all_tags:
-                freq[t] = freq.get(t, 0) + 1
-            top = sorted(freq.items(), key=lambda x: -x[1])[:8]
-            return "; ".join(f"{k}" for k, _ in top)
-
-        cs = (
-            df_scored.groupby(["cluster_id", "cluster_label"], dropna=False)
-            .agg(
-                total_companies=("company_id", "count"),
-                representative_theme_tags=("theme_tags", agg_tags),
-                average_radar_score=("radar_score", "mean"),
-            )
-            .reset_index()
-        )
-    else:
-        cs = pd.DataFrame(
-            columns=[
-                "cluster_id",
-                "cluster_label",
-                "total_companies",
-                "representative_theme_tags",
-                "average_radar_score",
-            ]
-        )
-
-    export_outputs(
-        out,
-        report,
-        cs,
-        (OUT_CSV, OUT_PARQUET, REPORT_JSON, CLUSTER_SUMMARY_CSV),
-    )
-
-    avg_rs = float(df_scored["radar_score"].mean()) if len(df_scored) else 0.0
-    print("--- Resumen scoring ---")
-    print(f"Filas leídas (clean): {total_rows_input}")
-    print(f"Filas tras merge con embeddings: {len(merged)}")
-    print(f"Filas con embedding elegible (válidas + embedded): {n_eligible}")
-    print(f"Filas saltadas (no elegibles o sin par en embeddings): {report['total_rows_skipped']}")
-    print(f"Clusters generados: {cluster_count}")
-    print(f"Total CANDIDATE: {report['total_candidate']}")
-    print(f"Total REVIEW: {report['total_review']}")
-    print(f"Total DISCARD: {report['total_discard']}")
-    print(f"Score promedio (radar): {avg_rs:.2f}")
-    print(
-        "Archivos generados:",
-        f"{OUT_CSV.name}, {OUT_PARQUET.name}, {REPORT_JSON.name}, {CLUSTER_SUMMARY_CSV.name}",
-    )
-
-
-def main() -> None:
-    run_scoring()
-
-
-if __name__ == "__main__":
-    main()

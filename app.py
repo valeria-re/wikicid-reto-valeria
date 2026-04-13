@@ -32,22 +32,19 @@ def dataframe_rows_for_template(df):
     """Convierte el DataFrame de `run_semantic_search` al dict que espera `index.html`."""
     rows = []
     for _, row in df.iterrows():
-        domain = str(row.get("website_domain") or "").strip()
-        desc = row.get("description_clean")
-        desc_s = str(desc).strip() if desc is not None and str(desc) != "nan" else ""
-        if not desc_s:
-            desc_s = str(row.get("match_reason_summary") or row.get("semantic_match_reason") or "")
+        website = str(row.get("website") or "").strip()
+        desc = str(row.get("description") or "").strip()
 
         rows.append(
             {
-                "name": str(row.get("company_name_display") or ""),
-                "sector": str(row.get("sector_primary") or ""),
-                "website": _domain_to_website(domain),
+                "name": str(row.get("name") or ""),
+                "sector": str(row.get("sector") or "Sector desconocido"),
+                "website": _domain_to_website(website),
                 "radar_score": round(float(row.get("radar_score") or 0), 2),
-                "radar_label": str(row.get("priority_label") or ""),
-                "description": desc_s,
-                "score_reason": str(row.get("score_reason_summary") or ""),
-                "similarity": float(row.get("semantic_similarity") or 0),
+                "radar_label": str(row.get("radar_label") or ""),
+                "description": desc,
+                "score_reason": str(row.get("score_reason") or ""),
+                "similarity": round(float(row.get("semantic_similarity") or 0), 3),
             }
         )
     return rows
