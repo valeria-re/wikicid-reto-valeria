@@ -117,7 +117,7 @@ Score	Label
 
 
 ⸻
-
+```text
 Project Architecture
 
 mini-radar/
@@ -145,7 +145,7 @@ mini-radar/
 └── static/
     └── styles.css
 
-
+```
 ⸻
 
 Pipeline Flow
